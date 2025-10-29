@@ -12,12 +12,12 @@ services:
 
   # Nginx
   nginx:
-    image: nginx:alpine
+    build:
+      context: ./docker/nginx
     ports:
       - "8000:80"
     volumes:
       - ./src:/var/www/html:ro
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - php
     networks:
@@ -25,7 +25,8 @@ services:
 
   # PostgreSQL
   database:
-    image: postgres:16
+    build:
+      context: ./docker/postgres
     environment:
       POSTGRES_DB: symfony
       POSTGRES_USER: symfony
