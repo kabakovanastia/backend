@@ -1,0 +1,46 @@
+services:
+  # PHP-FPM
+  php:
+    build:
+      context: ./docker/php
+    volumes:
+      - ./src:/var/www/html:rw,cached
+    environment:
+      - APP_ENV=dev
+    networks:
+      - symfony
+
+  # Nginx
+  nginx:
+    build:
+      context: ./docker/nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./src:/var/www/html:ro
+    depends_on:
+      - php
+    networks:
+      - symfony
+
+  # PostgreSQL
+  database:
+    build:
+      context: ./docker/postgres
+    environment:
+      POSTGRES_DB: symfony
+      POSTGRES_USER: symfony
+      POSTGRES_PASSWORD: symfonypassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - symfony
+
+volumes:
+  postgres_data:
+
+networks:
+  symfony:
+    driver: bridge
