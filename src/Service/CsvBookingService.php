@@ -2,70 +2,67 @@
 
 namespace App\Service;
 
+use App\Entity\Booking;
+
 class CsvBookingService
 {
     private string $filePath;
-    
-    private function ensureFileExists(): void
+    private int $nextId = 1;
+
+    private function loadNextId(): void
     {
+        if (!file_exists($this->filePath)) return;
+        $lines = file($this->filePath, FILE_IGNORE_NEW_LINES);
+        if (count($lines) <= 1) return;
+        $last = end($lines);
+        $lastId = (int) explode(',', $last)[0];
+        $this->nextId = $lastId + 1;
+    }
+
+    public function createBooking(int $houseId, int $userId, string $comment = ''): Booking
+    {
+        $booking = new Booking($this->nextId++, $houseId, $userId, $comment);
+        $this->saveBooking($booking);
+        return $booking;
+    }
+
+    private function saveBooking(Booking $booking): void
+    {
+        $line = implode(',', [
+            $booking->id,
+            $booking->houseId,
+            $booking->userId,
+            '"' . str_replace('"', '""', $booking->comment) . '"'
+        ]) . PHP_EOL;
+
         if (!file_exists($this->filePath)) {
-            $handle = fopen($this->filePath, 'w');
-            fputcsv($handle, ['id', 'house_id', 'phone', 'comment', 'created_at']);
-            fclose($handle);
+            file_put_contents($this->filePath, "id,house_id,user_id,comment\n");
         }
+        file_put_contents($this->filePath, $line, FILE_APPEND);
     }
 
-    public function getAllBookings(): array
+    public function updateBooking(int $id, string $comment): bool
     {
-        $bookings = [];
-        $handle = fopen($this->filePath, 'r');
-        $headers = fgetcsv($handle);
-        while (($row = fgetcsv($handle)) !== false) {
-            $bookings[] = array_combine($headers, $row);
-        }
-        fclose($handle);
-        return $bookings;
-    }
+        if (!file_exists($this->filePath)) return false;
 
-    public function createBooking(string $houseId, string $phone, string $comment): void
-    {
-        $bookings = $this->getAllBookings();
-        $newId = empty($bookings) ? 1 : ((int) end($bookings)['id']) + 1;
+        $lines = file($this->filePath, FILE_IGNORE_NEW_LINES);
+        $header = array_shift($lines);
+        $updated = false;
 
-        $handle = fopen($this->filePath, 'a');
-        fputcsv($handle, [
-            $newId,
-            $houseId,
-            $phone,
-            $comment,
-            (new \DateTime())->format('Y-m-d H:i:s')
-        ]);
-        fclose($handle);
-    }
-
-    public function updateBooking(int $id, string $newComment): bool
-    {
-        $bookings = $this->getAllBookings();
-        $found = false;
-
-        foreach ($bookings as &$booking) {
-            if ((int)$booking['id'] === $id) {
-                $booking['comment'] = $newComment;
-                $found = true;
+        foreach ($lines as $i => $line) {
+            $parts = str_getcsv($line);
+            if ((int)$parts[0] === $id) {
+                $parts[3] = $comment;
+                $lines[$i] = implode(',', array_map(fn($v) => '"' . str_replace('"', '""', $v) . '"', $parts));
+                $updated = true;
+                break;
             }
         }
 
-        if (!$found) {
-            return false;
+        if ($updated) {
+            file_put_contents($this->filePath, $header . PHP_EOL . implode(PHP_EOL, $lines) . PHP_EOL);
         }
 
-        $handle = fopen($this->filePath, 'w');
-        fputcsv($handle, ['id', 'house_id', 'phone', 'comment', 'created_at']);
-        foreach ($bookings as $booking) {
-            fputcsv($handle, $booking);
-        }
-        fclose($handle);
-
-        return true;
+        return $updated;
     }
 }

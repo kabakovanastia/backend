@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Service\CsvHouseService;
 use App\Service\CsvBookingService;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +15,8 @@ class BookingController extends AbstractController
 {
     public function __construct(
         private CsvHouseService $houseService,
-        private CsvBookingService $bookingService
+        private CsvBookingService $bookingService,
+        private UserService $userService
     ) {}
 
     #[Route('/api/houses/available', name: 'houses_available', methods: ['GET'])]
@@ -40,9 +42,20 @@ class BookingController extends AbstractController
             throw new HttpException(404, 'House not found');
         }
 
-        $this->bookingService->createBooking($houseId, $phone, $comment);
+        $user = $this->userService->findUserByPhone($phone);
+        if (!$user) {
+            $user = $this->userService->createUser($phone);
+        }
 
-        return $this->json(['status' => 'Booking created'], 201);
+        $booking = $this->bookingService->createBooking($houseId, $user->id, $comment);
+
+        return $this->json([
+            'id' => $booking->id,
+            'house_id' => $booking->houseId,
+            'user_id' => $booking->userId,
+            'comment' => $booking->comment,
+            'status' => 'Booking created'
+        ], 201);
     }
 
     #[Route('/api/bookings/{id}', name: 'update_booking', methods: ['PUT'])]
