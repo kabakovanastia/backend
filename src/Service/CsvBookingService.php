@@ -5,13 +5,7 @@ namespace App\Service;
 class CsvBookingService
 {
     private string $filePath;
-
-    public function __construct(string $dataDir)
-    {
-        $this->filePath = $dataDir . '/bookings.csv';
-        $this->ensureFileExists();
-    }
-
+    
     private function ensureFileExists(): void
     {
         if (!file_exists($this->filePath)) {

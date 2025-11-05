@@ -7,6 +7,7 @@ use App\Service\CsvBookingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class BookingController extends AbstractController
@@ -26,16 +27,17 @@ class BookingController extends AbstractController
     public function createBooking(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+
         $houseId = $data['house_id'] ?? null;
         $phone = $data['phone'] ?? null;
         $comment = $data['comment'] ?? '';
 
         if (!$houseId || !$phone) {
-            return $this->json(['error' => 'Missing house_id or phone'], 400);
+            throw new HttpException(400, 'Missing house_id or phone');
         }
 
         if (!$this->houseService->getHouseById($houseId)) {
-            return $this->json(['error' => 'House not found'], 404);
+            throw new HttpException(404, 'House not found');
         }
 
         $this->bookingService->createBooking($houseId, $phone, $comment);
@@ -51,7 +53,7 @@ class BookingController extends AbstractController
 
         $updated = $this->bookingService->updateBooking($id, $comment);
         if (!$updated) {
-            return $this->json(['error' => 'Booking not found'], 404);
+            throw new HttpException(404, 'Booking not found');
         }
 
         return $this->json(['status' => 'Comment updated']);
