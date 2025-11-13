@@ -36,9 +36,6 @@ jobs:
         if composer run-script test --quiet 2>/dev/null; then
           echo "Tests passed"
         else
-<<<<<<< HEAD
-          echo "Tests failed, but workflow will continue"
-=======
           echo "No 'test' script found in composer.json, continuing silently"
         fi
 
@@ -75,7 +72,6 @@ jobs:
           echo "❌ An error occurred during the formatting check (exit code: $exit_code):"
           echo "$output"
           exit $exit_code
->>>>>>> f47cf5c (Update php.yml)
         fi
 
   deploy-check:
