@@ -36,7 +36,46 @@ jobs:
         if composer run-script test --quiet 2>/dev/null; then
           echo "Tests passed"
         else
+<<<<<<< HEAD
           echo "Tests failed, but workflow will continue"
+=======
+          echo "No 'test' script found in composer.json, continuing silently"
+        fi
+
+  check-formatting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+
+    - name: Install PHP CS Fixer
+      run: composer global require friendsofphp/php-cs-fixer
+
+    - name: Check code formatting
+      run: |
+        set +e
+        echo "🔍 Running PHP CS Fixer check..."
+        output=$(
+          ~/.composer/vendor/bin/php-cs-fixer check --diff --allow-risky=yes 2>&1
+        )
+        exit_code=$?
+        set -e
+        if [ $exit_code -eq 0 ]; then
+          echo "✅ All PHP files are correctly formatted."
+        elif [ $exit_code -eq 8 ]; then
+          echo "⚠️  Some files need formatting:"
+          echo "$output"
+          echo ""
+          echo "💡 Tip: Run 'php php-cs-fixer.phar fix --allow-risky=yes' locally to fix these issues."
+        else
+          echo "❌ An error occurred during the formatting check (exit code: $exit_code):"
+          echo "$output"
+          exit $exit_code
+>>>>>>> f47cf5c (Update php.yml)
         fi
 
   deploy-check:
