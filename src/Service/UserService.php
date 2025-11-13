@@ -17,9 +17,13 @@ class UserService
 
     private function loadNextId(): void
     {
-        if (!file_exists($this->filePath)) return;
+        if (!file_exists($this->filePath)) {
+            return;
+        }
         $lines = file($this->filePath, FILE_IGNORE_NEW_LINES);
-        if (count($lines) <= 1) return;
+        if (count($lines) <= 1) {
+            return;
+        }
         $last = end($lines);
         $lastId = (int) explode(',', $last)[0];
         $this->nextId = $lastId + 1;
@@ -48,7 +52,9 @@ class UserService
 
     public function findUserByPhone(string $phone): ?User
     {
-        if (!file_exists($this->filePath)) return null;
+        if (!file_exists($this->filePath)) {
+            return null;
+        }
 
         $lines = file($this->filePath, FILE_IGNORE_NEW_LINES);
         array_shift($lines); // skip header

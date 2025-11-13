@@ -9,5 +9,6 @@ class Booking
         public int $houseId,
         public int $userId,
         public string $comment = ''
-    ) {}
+    ) {
+    }
 }

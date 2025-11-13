@@ -8,5 +8,6 @@ class House
         public int $id,
         public string $name,
         public bool $available = true
-    ) {}
+    ) {
+    }
 }

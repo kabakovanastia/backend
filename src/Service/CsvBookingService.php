@@ -9,11 +9,21 @@ class CsvBookingService
     private string $filePath;
     private int $nextId = 1;
 
+    public function __construct(string $dataDir)
+    {
+        $this->filePath = $dataDir . '/bookings.csv';
+        $this->loadNextId();
+    }
+
     private function loadNextId(): void
     {
-        if (!file_exists($this->filePath)) return;
+        if (!file_exists($this->filePath)) {
+            return;
+        }
         $lines = file($this->filePath, FILE_IGNORE_NEW_LINES);
-        if (count($lines) <= 1) return;
+        if (count($lines) <= 1) {
+            return;
+        }
         $last = end($lines);
         $lastId = (int) explode(',', $last)[0];
         $this->nextId = $lastId + 1;
@@ -43,7 +53,9 @@ class CsvBookingService
 
     public function updateBooking(int $id, string $comment): bool
     {
-        if (!file_exists($this->filePath)) return false;
+        if (!file_exists($this->filePath)) {
+            return false;
+        }
 
         $lines = file($this->filePath, FILE_IGNORE_NEW_LINES);
         $header = array_shift($lines);

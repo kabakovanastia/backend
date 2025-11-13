@@ -8,5 +8,6 @@ class User
         public int $id,
         public string $phone,
         public string $name = ''
-    ) {}
+    ) {
+    }
 }

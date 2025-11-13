@@ -20,3 +20,7 @@ services:
     App\Service\CsvBookingService:
         arguments:
             $dataDir: '%app.data_dir%'
+
+    App\Service\UserService:
+        arguments:
+            $userCsvPath: '%app.data_dir%/users.csv' 

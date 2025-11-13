@@ -17,7 +17,8 @@ class BookingController extends AbstractController
         private CsvHouseService $houseService,
         private CsvBookingService $bookingService,
         private UserService $userService
-    ) {}
+    ) {
+    }
 
     #[Route('/api/houses/available', name: 'houses_available', methods: ['GET'])]
     public function getAvailableHouses(): JsonResponse
