@@ -29,9 +29,9 @@ class UserService
         $this->nextId = $lastId + 1;
     }
 
-    public function createUser(string $phone, string $name = ''): User
+    public function createUser(string $phone, string $name = '', string $hashedPassword = ''): User
     {
-        $user = new User($this->nextId++, $phone, $name);
+        $user = new User($this->nextId++, $phone, $name, [], $hashedPassword);
         $this->saveUser($user);
         return $user;
     }
@@ -41,11 +41,12 @@ class UserService
         $line = implode(',', [
             $user->id,
             '"' . str_replace('"', '""', $user->phone) . '"',
-            '"' . str_replace('"', '""', $user->name) . '"'
+            '"' . str_replace('"', '""', $user->name) . '"',
+            '"' . str_replace('"', '""', $user->getPassword()) . '"'
         ]) . PHP_EOL;
 
         if (!file_exists($this->filePath)) {
-            file_put_contents($this->filePath, "id,phone,name\n");
+            file_put_contents($this->filePath, "id,phone,name,password\n");
         }
         file_put_contents($this->filePath, $line, FILE_APPEND);
     }
@@ -57,15 +58,59 @@ class UserService
         }
 
         $lines = file($this->filePath, FILE_IGNORE_NEW_LINES);
-        array_shift($lines); // skip header
-
-        foreach ($lines as $line) {
-            $parts = str_getcsv($line);
-            if ($parts[1] === $phone) {
-                return new User((int)$parts[0], $parts[1], $parts[2] ?? '');
+        $header_line = array_shift($lines);
+        if (null === $header_line) {
+             return null;
+        }
+        $headers = str_getcsv($header_line);
+        $hasPasswordColumn = in_array('password', $headers);
+        if (!$hasPasswordColumn) {
+            foreach ($lines as $line) {
+                $parts = str_getcsv($line);
+                if (count($parts) < 4) {
+                     $parts = array_pad($parts, 4, '');
+                }
+                if ($parts[1] === $phone) {
+                    return new User((int)$parts[0], $parts[1], $parts[2] ?? '', [], $parts[3] ?? '');
+                }
+            }
+        } else {
+            foreach ($lines as $line) {
+                $parts = str_getcsv($line);
+                if (count($parts) >= 4 && $parts[1] === $phone) {
+                    return new User((int)$parts[0], $parts[1], $parts[2] ?? '', [], $parts[3]);
+                }
             }
         }
 
         return null;
+    }
+
+    public function updateUserPassword(int $userId, string $hashedPassword): bool
+    {
+        if (!file_exists($this->filePath)) {
+            return false;
+        }
+
+        $lines = file($this->filePath, FILE_IGNORE_NEW_LINES);
+        $header = array_shift($lines);
+
+        $updated = false;
+        foreach ($lines as $i => $line) {
+            $parts = str_getcsv($line);
+            if (count($parts) >= 4 && (int)$parts[0] === $userId) {
+                $parts[3] = $hashedPassword;
+                $updated_line = '"' . str_replace('"', '""', $parts[0]) . '","' . str_replace('"', '""', $parts[1]) . '","' . str_replace('"', '""', $parts[2]) . '","' . str_replace('"', '""', $parts[3]) . '"';
+                $lines[$i] = $updated_line;
+                $updated = true;
+                break;
+            }
+        }
+
+        if ($updated) {
+            file_put_contents($this->filePath, $header . PHP_EOL . implode(PHP_EOL, $lines) . PHP_EOL);
+        }
+
+        return $updated;
     }
 }
