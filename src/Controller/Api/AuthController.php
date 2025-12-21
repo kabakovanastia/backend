@@ -20,15 +20,13 @@ class AuthController extends AbstractController
     #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     public function login(#[CurrentUser] ?User $user): JsonResponse
     {
-        if (null === $user) {
-            return $this->json([
-                'error' => 'Authentication failed.',
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-        return $this->json([
-            'user' => $user->getUserIdentifier(),
-            'message' => 'Login successful'
-        ]);
+        $data = null === $user
+            ? ['error' => 'Authentication failed.']
+            : ['user' => $user->getUserIdentifier(), 'message' => 'Login successful'];
+
+        $statusCode = null === $user ? Response::HTTP_UNAUTHORIZED : Response::HTTP_OK;
+
+        return $this->json($data, $statusCode);
     }
 
     #[Route('/api/logout', name: 'api_logout', methods: ['POST'])]
