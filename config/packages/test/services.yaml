@@ -1,0 +1,7 @@
+services:
+    _defaults:
+        public: true
+
+    App\Service\UserService:
+        arguments:
+            $userCsvPath: '%kernel.project_dir%/var/data/users_test.csv'
