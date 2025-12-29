@@ -2,9 +2,9 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\AdminUser;
-use App\Entity\AdminHouse;
-use App\Entity\AdminBooking;
+use App\Entity\User;
+use App\Entity\House;
+use App\Entity\Booking;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -28,8 +28,9 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        yield MenuItem::linkToCrud('Users', 'fa fa-user', AdminUser::class);
-        yield MenuItem::linkToCrud('Houses', 'fa fa-home', AdminHouse::class);
-        yield MenuItem::linkToCrud('Bookings', 'fa fa-list', AdminBooking::class);
+        yield MenuItem::linkToCrud('Users', 'fa fa-user', User::class);
+        yield MenuItem::linkToCrud('Houses', 'fa fa-home', House::class);
+        yield MenuItem::linkToCrud('Bookings', 'fa fa-list', Booking::class);
     }
+
 }
